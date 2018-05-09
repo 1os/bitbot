@@ -1,0 +1,55 @@
+name: bitbot # you probably want to 'snapcraft register <name>'
+version: '0.1' # just for humans, typically '1.2+git' or '1.3.2'
+summary: Bitrix24 voice assistant # 79 char long summary
+description: |
+  This app can detect intro command and send next voice record to the cloud,
+  recognized command will send to Bitrix24. This app bugger aware.
+grade: devel # must be 'stable' to release into candidate/stable channels
+confinement: devmode # use 'strict' once you have the right plugs and slots
+icon: ./icon.png
+apps:
+  bitbot:
+    command: pocketsphinx_continuous -inmic yes # $SNAP_COMMON
+    environment:
+      LD_LIBRARY_PATH: $SNAP/usr/local/lib
+      PKG_CONFIG_PATH: $SNAP/usr/local/lib/pkgconfig
+    daemon: simple
+    plugs:
+      - network
+      - alsa
+      
+  conf-server:
+    command: webserver -p 80 www
+    daemon: simple
+    restart-condition: always
+    plugs: [network-bind]
+
+parts:
+  sphinxbase:
+    plugin: autotools
+    source: https://sourceforge.net/projects/cmusphinx/files/sphinxbase/5prealpha/sphinxbase-5prealpha.tar.gz
+    stage-packages:
+      - bison
+      - libasound2-dev
+      - alsa-utils
+      - swig
+      - python-dev
+      - libv4lconvert0
+      - libbcprov-java
+    configflags: |
+      --enable-fixed
+      
+  pocketsphinx:
+    plugin: autotools
+    source: https://sourceforge.net/projects/cmusphinx/files/pocketsphinx/5prealpha/pocketsphinx-5prealpha.tar.gz
+    stage-packages:
+      - bison
+      - libasound2-dev
+      - alsa-utils
+      - swig
+      - python-dev
+      - libv4lconvert0
+      - libbcprov-java
+    after: |
+      sphinxbase
+      simple-webserver
