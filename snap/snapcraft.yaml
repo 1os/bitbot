@@ -11,8 +11,8 @@ apps:
   bitbot:
     command: pocketsphinx_continuous -inmic yes # $SNAP_COMMON
     environment:
-      LD_LIBRARY_PATH: $SNAP/usr/local/lib
-      PKG_CONFIG_PATH: $SNAP/usr/local/lib/pkgconfig
+      LD_LIBRARY_PATH: $SNAP/lib
+      PKG_CONFIG_PATH: $SNAP/lib/pkgconfig
     daemon: simple
     plugs:
       - network
@@ -25,31 +25,53 @@ apps:
     plugs: [network-bind]
 
 parts:
+#  simple-webserver:
+#    plugin: go
+#    source: https://github.com/ubuntu/simple-webserver-part.git
+#    go-importpath: github.com/ubuntu/simple-webserver-part
   sphinxbase:
     plugin: autotools
     source: https://sourceforge.net/projects/cmusphinx/files/sphinxbase/5prealpha/sphinxbase-5prealpha.tar.gz
+    build-packages:
+      - bison
+      - libasound2-dev
+      - alsa-utils
+      - swig
+      - python-dev
     stage-packages:
       - bison
       - libasound2-dev
       - alsa-utils
       - swig
       - python-dev
-      - libv4lconvert0
-      - libbcprov-java
-    configflags: |
-      --enable-fixed
+      - libc6
+    configflags:
+      - --enable-fixed
+      - --prefix=/
+    after:
+      - simple-webserver
       
   pocketsphinx:
     plugin: autotools
     source: https://sourceforge.net/projects/cmusphinx/files/pocketsphinx/5prealpha/pocketsphinx-5prealpha.tar.gz
+    override-build: |
+      export PKG_CONFIG=$SNAPCRAFT_STAGE
+      snapcraftctl build
+    configflags:
+      - --enable-fixed
+      - --prefix=/
+    after:
+      - sphinxbase
+    build-packages:
+      - bison
+      - libasound2-dev
+      - alsa-utils
+      - swig
+      - python-dev
     stage-packages:
       - bison
       - libasound2-dev
       - alsa-utils
       - swig
       - python-dev
-      - libv4lconvert0
-      - libbcprov-java
-    after: |
-      sphinxbase
-      simple-webserver
+      - libc6
