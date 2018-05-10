@@ -68,6 +68,7 @@ parts:
       - alsa-utils
       - swig
       - python-dev
+      - pkg-config
     stage-packages:
       - bison
       - libasound2-dev
@@ -75,3 +76,4 @@ parts:
       - swig
       - python-dev
       - libc6
+      - pkg-config
