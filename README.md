@@ -1,2 +1,2 @@
 # bitbot
-Bitrix24 device voice assistent on Ruspberry Pi
+Bitrix24 device voice assistant on Ruspberry Pi
