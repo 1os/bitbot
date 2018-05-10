@@ -1,5 +1,5 @@
 name: bitbot # you probably want to 'snapcraft register <name>'
-version: '0.1' # just for humans, typically '1.2+git' or '1.3.2'
+version: '0.2' # just for humans, typically '1.2+git' or '1.3.2'
 summary: Bitrix24 voice assistant # 79 char long summary
 description: |
   This app can detect intro command and send next voice record to the cloud,
@@ -9,7 +9,7 @@ confinement: devmode # use 'strict' once you have the right plugs and slots
 icon: ./icon.png
 apps:
   bitbot:
-    command: pocketsphinx_continuous -inmic yes # $SNAP_COMMON
+    command: pocketsphinx_continuous -adcdev plughw:1,0 -dict $SNAP/model/4333.dic -lm $SNAP/model/4333.lm -inmic yes # $SNAP_COMMON
     environment:
       LD_LIBRARY_PATH: $SNAP/lib
       PKG_CONFIG_PATH: $SNAP/lib/pkgconfig
@@ -77,3 +77,7 @@ parts:
       - python-dev
       - libc6
       - pkg-config
+  
+  actions:
+    source: model/
+    plugin: dump
