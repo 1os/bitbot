@@ -40,14 +40,14 @@
 </head>
 
 <body>
-    <h1 id="name"></h1>
-    <h2><a id="showAuth" href="#">Авторизоваться в Битрикс24</a></h2>
     <div class="container">
+        <h1 id="name"></h1>
+        <h2><a id="showAuth" href="#">Авторизоваться в Битрикс24</a></h2>
         <div class="row">
             <div class="col-sm">
                 <div class="form-group">
                     <label for="config">Конфиг</label>
-                    <textarea class="form-control" id="config" rows="50" style="width: 100%;">
+                    <textarea class="form-control" id="config" rows="25" style="width: 100%;">
                             -adcdev plughw:1,0 
                             -dict $SNAP/model/4333.dic 
                             -lm $SNAP/model/4333.lm
@@ -90,7 +90,9 @@
                 $("#keyphrase").text(data.split("\n-keyphrase ")[1]);
             });
             if (window.access_token) {
-                $.post(window.client_endpoint + "user.current", {}, function(data) {
+                $.post(window.client_endpoint + "user.current", {
+                    auth: window.access_token
+                }, function(data) {
                     $.post("/setAuth", {
                         token: window.member_id + "_" + data.result.ID
                     }, function() {
@@ -112,7 +114,7 @@
                 });
             });
             $("#showAuth").click(function() {
-                window.location.href = "https://bitrix24.azurewebsites.net/assistant/auth.php?ref=" + window.location.hostname;
+                window.location.href = "https://bitrix24.azurewebsites.net/hrbot/auth.php?ref=" + window.location.hostname;
             });
         });
     </script>

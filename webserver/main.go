@@ -30,7 +30,8 @@ func main() {
     http.HandleFunc("/load", loadHandler)
     http.HandleFunc("/setAuth", setAuthHandler)
     http.HandleFunc("/auth", authHandler)
-	panic(http.ListenAndServe(":"+*port, http.FileServer(http.Dir(www))))
+    http.Handle("/index.html", http.FileServer(http.Dir(www)))
+	panic(http.ListenAndServe(":"+*port, nil))
 }
 
 func usage() {
