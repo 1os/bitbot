@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"bytes"
 )
 
 func main() {
@@ -49,7 +50,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 
 	configPath := path.Join(snap_common_dir, "sphinx.cfg")
 
-	config := []byte(Replace(Replace(r.FormValue("config"),"$SNAP_COMMON",snap_common_dir,-1),"$SNAP_USER_COMMON",snap_user_common_dir,-1))
+	config := []byte(strings.Replace(strings.Replace(r.FormValue("config"),"$SNAP_COMMON",snap_common_dir,-1),"$SNAP_USER_COMMON",snap_user_common_dir,-1))
 	
     err := ioutil.WriteFile(configPath, config, 0644)
 	check(err)
@@ -65,10 +66,12 @@ func loadHandler(w http.ResponseWriter, r *http.Request) {
 
 	config, err := ioutil.ReadFile(configPath)
     check(err)
-	
+
+	n := bytes.IndexByte(config, 0)
+	s := string(config[:n])
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8") // normal header
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, Replace(Replace(config,snap_common_dir,"$SNAP_COMMON",-1),snap_user_common_dir,"$SNAP_USER_COMMON",-1))
+	io.WriteString(w, strings.Replace(strings.Replace(s,snap_common_dir,"$SNAP_COMMON",-1),snap_user_common_dir,"$SNAP_USER_COMMON",-1))
 }
 
 func setAuthHandler(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +95,9 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	config, err := ioutil.ReadFile(configPath)
     check(err)
 	
+	n := bytes.IndexByte(config, 0)
+	s := string(config[:n])
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8") // normal header
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, config)
+	io.WriteString(w, s)
 }
