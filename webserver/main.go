@@ -6,9 +6,10 @@ import (
 	"log"
 	"net/http"
     "io/ioutil"
-    "bufio"
+    "io"
 	"os"
 	"path"
+	"strings"
 )
 
 func main() {

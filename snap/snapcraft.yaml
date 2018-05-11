@@ -50,7 +50,7 @@ parts:
       - --enable-fixed
       - --prefix=/
     after:
-      - simple-webserver
+      - config-webserver
       
   pocketsphinx:
     plugin: autotools
