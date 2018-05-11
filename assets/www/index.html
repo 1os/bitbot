@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Установка...</title>
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+    <!-- Custom styles for this template -->
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.1.221/styles/kendo.bootstrap-v4.min.css" />
+    <!-- Custom styles for this template -->
+    <style>
+        html {
+            font-size: 14px;
+        }
+        
+        @media (min-width: 768px) {
+            html {
+                font-size: 16px;
+            }
+        }
+        
+        .container {
+            max-width: 960px;
+        }
+        
+        .pricing-header {
+            max-width: 700px;
+        }
+        
+        .card-deck .card {
+            min-width: 220px;
+        }
+        
+        .box-shadow {
+            box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+        }
+    </style>
+</head>
+
+<body>
+    <h1 id="name"></h1>
+    <h2><a id="showAuth" href="#">Авторизоваться в Битрикс24</a></h2>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm">
+                <div class="form-group">
+                    <label for="config">Конфиг</label>
+                    <textarea class="form-control" id="config" rows="50" style="width: 100%;">
+                            -adcdev plughw:1,0 
+                            -dict $SNAP/model/4333.dic 
+                            -lm $SNAP/model/4333.lm
+                            -rawlogdir $SNAP_USER_COMMON/log/
+                    </textarea>
+                </div>
+                <div class="form-group">
+                    <label for="keyphrase">Активационная фраза</label>
+                    <input class="form-control" id="keyphrase" style="width: 100%;" />
+                </div>
+                <button id="finish" type="button" class="btn btn-primary">Сохранить</button>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap core JavaScript
+================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://kendo.cdn.telerik.com/2018.1.221/js/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+    <script src="https://kendo.cdn.telerik.com/2018.1.221/js/kendo.all.min.js"></script>
+    <script>
+        function getParameterByName(name) {
+            var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+            return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+        }
+
+        function firstLetterUp(word) {
+            return (word + "").substr(0, 1).toUpperCase() + word.substr(1);
+        }
+
+        window.member_id = getParameterByName("member_id");
+        window.client_endpoint = getParameterByName("client_endpoint");
+        window.domain = getParameterByName("domain");
+        window.access_token = getParameterByName("access_token");
+
+        $(function() {
+            $.post("/load", {}, function(data) {
+                $("#config").text(data.split("\n-keyphrase ")[0]);
+                $("#keyphrase").text(data.split("\n-keyphrase ")[1]);
+            });
+            if (window.access_token) {
+                $.post(window.client_endpoint + "user.current", {}, function(data) {
+                    $.post("/setAuth", {
+                        token: window.member_id + "_" + data.result.ID
+                    }, function() {
+                        $("#name").text(firstLetterUp(data.result.LAST_NAME) + " " +
+                            firstLetterUp(data.result.NAME) + " " +
+                            firstLetterUp(data.result.SECOND_NAME));
+                    });
+                });
+            } else {
+                $.post("/auth", {}, function(data) {
+                    $("#name").text(data);
+                });
+            }
+            $("#finish").click(function() {
+                $.post("/save", {
+                    config: $("#config").text() + "\n-keyphrase " + $("#keyphrase").text()
+                }, function() {
+                    alert("saved");
+                });
+            });
+            $("#showAuth").click(function() {
+                window.location.href = "https://bitrix24.azurewebsites.net/assistant/auth.php?ref=" + window.location.hostname;
+            });
+        });
+    </script>
+</body>
+
+</html>
