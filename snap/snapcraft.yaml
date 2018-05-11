@@ -1,5 +1,5 @@
 name: bitbot
-version: '0.2'
+version: '0.3'
 summary: Bitrix24 voice assistant # 79 char long summary
 description: |
   This app can detect intro command and send next voice record to the cloud,
