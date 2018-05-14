@@ -27,3 +27,4 @@ prime
 .snapcraft
 stage
 *.snap
+lm/

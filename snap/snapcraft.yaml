@@ -84,6 +84,6 @@ parts:
     source: assets/
     plugin: dump
 
-  acoustic-and-language-model:
-    source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/Russian/zero_ru_cont_8k_v3.tar.gz
-    plugin: dump
+ # acoustic-and-language-model:
+ #   source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/Russian/zero_ru_cont_8k_v3.tar.gz
+ #   plugin: dump
