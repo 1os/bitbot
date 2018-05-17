@@ -1,5 +1,5 @@
 name: bitbot
-version: '0.3'
+version: '0.4'
 summary: Bitrix24 voice assistant # 79 char long summary
 description: |
   This app can detect keyword and send next voice record to the cloud,
@@ -9,10 +9,10 @@ confinement: devmode # use 'strict' once you have the right plugs and slots
 icon: ./icon.png
 apps:
   bitbot:
-    command: pocketsphinx_continuous -argfile $SNAP_COMMON/sphinx.cfg -hmm $SNAP/zero_ru.cd_semi_4000/ -inmic yes
-    environment:
-      LD_LIBRARY_PATH: $SNAP/lib
-      PKG_CONFIG_PATH: $SNAP/lib/pkgconfig
+    command: continuous.py
+#    environment:
+#      LD_LIBRARY_PATH: $SNAP/lib
+#      PKG_CONFIG_PATH: $SNAP/lib/pkgconfig
     daemon: simple
     restart-condition: always
     plugs:
@@ -26,6 +26,37 @@ apps:
     plugs: [network-bind]
 
 parts:
+
+  acoustic-model:
+#    source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/US%20English/cmusphinx-en-us-5.2.tar.gz
+    source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/Russian/cmusphinx-ru-5.2.tar.gz
+#    source: hmm/cmusphinx-ru-5.2.tar.gz
+    plugin: dump
+    organize:
+      '*': hmm/
+    stage:
+      - -hmm/*.lm
+      - -hmm/*.dic
+      - -hmm/*.lm.bin
+      - -*.lm
+      - -*.dic
+      - -*.lm.bin
+    prime:
+      - -hmm/*.lm
+      - -hmm/*.dic
+      - -hmm/*.lm.bin
+      - -*.lm
+      - -*.dic
+      - -*.lm.bin
+
+  assets:
+    source: assets/
+    plugin: dump
+
+  continuous:
+    source: continuous/
+    plugin: dump
+
   config-webserver:
     plugin: go
     source: .
@@ -34,6 +65,7 @@ parts:
   sphinxbase:
     plugin: autotools
     source: https://sourceforge.net/projects/cmusphinx/files/sphinxbase/5prealpha/sphinxbase-5prealpha.tar.gz
+#    source: sphinxbase-5prealpha.tar.gz
     build-packages:
       - bison
       - libasound2-dev
@@ -47,6 +79,7 @@ parts:
       - swig
       - python-dev
       - libc6
+      - python-pyaudio
     configflags:
       - --enable-fixed
       - --prefix=/
@@ -56,6 +89,7 @@ parts:
   pocketsphinx:
     plugin: autotools
     source: https://sourceforge.net/projects/cmusphinx/files/pocketsphinx/5prealpha/pocketsphinx-5prealpha.tar.gz
+#    source: pocketsphinx-5prealpha.tar.gz
     override-build: |
       export PKG_CONFIG=$SNAPCRAFT_STAGE
       snapcraftctl build
@@ -79,11 +113,3 @@ parts:
       - python-dev
       - libc6
       - pkg-config
-  
-  assets:
-    source: assets/
-    plugin: dump
-
- # acoustic-and-language-model:
- #   source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/Russian/zero_ru_cont_8k_v3.tar.gz
- #   plugin: dump

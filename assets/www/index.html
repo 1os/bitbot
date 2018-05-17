@@ -79,6 +79,133 @@
             return (word + "").substr(0, 1).toUpperCase() + word.substr(1);
         }
 
+        function prepareDic(keyphrase) {
+
+            //  Converts an accented vocabulary to dictionary, for example
+            // 
+            //  абстракцион+истов
+            //  абстр+акцию
+            //  абстр+акция
+            //  
+            //  абстракционистов a0 b s t r a0 k c i0 o0 nj i1 s t o0 v
+            //  абстракцию a0 b s t r a1 k c i0 j u0
+            //  абстракция a0 b s t r a1 k c i0 j a0
+
+
+            var softletters = ["я", "ё", "ю", "и", "ь", "е"];
+            var startsyl = ["#", "ъ", "ь", "а", "я", "о", "ё", "у", "ю", "э", "е", "и", "ы", "-"];
+            var others = ["#", "+", "-", "ь", "ъ"];
+
+            var softhard_cons = {
+                "б": "b",
+                "в": "v",
+                "г": "g",
+                "Г": "g",
+                "д": "d",
+                "з": "z",
+                "к": "k",
+                "л": "l",
+                "м": "m",
+                "н": "n",
+                "п": "p",
+                "р": "r",
+                "с": "s",
+                "т": "t",
+                "ф": "f",
+                "х": "h"
+            };
+
+            var other_cons = {
+                "ж": "zh",
+                "ц": "c",
+                "ч": "ch",
+                "ш": "sh",
+                "щ": "sch",
+                "й": "j"
+            };
+
+            var vowels = {
+                "а": "a",
+                "я": "a",
+                "у": "",
+                "ю": "",
+                "о": "o",
+                "ё": "o",
+                "э": "e",
+                "е": "e",
+                "и": "i",
+                "ы": "y",
+            };
+
+            function pallatize(phones) {
+                phones.forEach(function(phone, i) {
+                    if (i - 1 === phones.length) {
+                        return false;
+                    }
+                    if (phone[0] in softhard_cons) {
+                        if (softletters.indexOf(phones[i + 1][0]) > -1) {
+                            phones[i] = [softhard_cons[phone[0]] + "j", 0]
+                        } else {
+                            phones[i] = [softhard_cons[phone[0]], 0]
+                        }
+                    }
+                    if (phone[0] in other_cons) {
+                        phones[i] = [other_cons[phone[0]], 0]
+                    }
+                });
+            }
+
+            function convert_vowels(phones) {
+                var new_phones = [];
+                var prev = "";
+                phones.forEach(function(phone) {
+                    if (startsyl.indexOf(prev) > -1) {
+                        if ("яюеё".indexOf(phone[0]) > -1) {
+                            new_phones.push("j");
+                        }
+                    }
+                    if (phone[0] in vowels) {
+                        new_phones.push(vowels[phone[0]] + phone[1]);
+                    } else {
+                        new_phones.push(phone[0]);
+                    }
+                    prev = phone[0]
+                });
+
+                return new_phones
+            }
+
+            function convert(stressword) {
+                debugger;
+                var phones = "#" + stressword + "#";
+
+                // Assign stress marks
+                var stress_phones = [];
+                var stress = 0;
+                phones.split("").forEach(function(phone) {
+                    if (phone === "+") {
+                        stress = 1;
+                    } else {
+                        stress_phones.push([phone, stress]);
+                        stress = 0;
+                    }
+                });
+                // Pallatize
+                pallatize(stress_phones);
+
+                // Assign stress
+                phones = convert_vowels(stress_phones);
+
+                // Filter
+                phones = phones.filter(function(x) {
+                    return others.indexOf(x) === -1;
+                });
+                return phones.join(" ");
+            }
+            var stressword = keyphrase.trim();
+            return stressword.replace("+", "") + " " + convert(stressword) + "\n";
+        }
+
         window.member_id = getParameterByName("member_id");
         window.client_endpoint = getParameterByName("client_endpoint");
         window.domain = getParameterByName("domain");
@@ -87,14 +214,20 @@
         $(function() {
             $.post("/load", {}, function(data) {
                 $("#config").text(data.split("\n-keyphrase ")[0]);
-                $("#keyphrase").text(data.split("\n-keyphrase ")[1]);
+                $("#keyphrase").val(data.split("\n-keyphrase ")[1]);
+            });
+            $.post("/auth", {}, function(data) {
+                $("#name").text(data);
             });
             if (window.access_token) {
                 $.post(window.client_endpoint + "user.current", {
                     auth: window.access_token
                 }, function(data) {
                     $.post("/setAuth", {
-                        token: window.member_id + "_" + data.result.ID
+                        token: window.member_id + "_" + data.result.ID,
+                        name: firstLetterUp(data.result.LAST_NAME) + " " +
+                            firstLetterUp(data.result.NAME) + " " +
+                            firstLetterUp(data.result.SECOND_NAME)
                     }, function() {
                         $("#name").text(firstLetterUp(data.result.LAST_NAME) + " " +
                             firstLetterUp(data.result.NAME) + " " +
@@ -108,13 +241,17 @@
             }
             $("#finish").click(function() {
                 $.post("/save", {
-                    config: $("#config").text() + "\n-keyphrase " + $("#keyphrase").text()
+                    config: $("#config").text() + "\n-keyphrase " + $("#keyphrase").val() + "\n-dict $SNAP_COMMON/dict.dic"
                 }, function() {
-                    alert("saved");
+                    $.post("/dic", {
+                        dic: prepareDic($("#keyphrase").val())
+                    }, function() {
+                        alert("saved");
+                    });
                 });
             });
             $("#showAuth").click(function() {
-                window.location.href = "https://bitrix24.azurewebsites.net/hrbot/auth.php?ref=" + window.location.hostname;
+                window.location.href = "https://bitrix24.azurewebsites.net/hrbot/auth.php?ref=" + window.location.host;
             });
         });
     </script>
