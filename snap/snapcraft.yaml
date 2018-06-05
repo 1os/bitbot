@@ -29,8 +29,8 @@ parts:
 
   acoustic-model:
 #    source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/US%20English/cmusphinx-en-us-5.2.tar.gz
-#    source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/Russian/cmusphinx-ru-5.2.tar.gz
-    source: hmm/cmusphinx-ru-5.2.tar.gz
+    source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/Russian/cmusphinx-ru-5.2.tar.gz
+#    source: hmm/cmusphinx-ru-5.2.tar.gz
     plugin: dump
     organize:
       '*': hmm/
