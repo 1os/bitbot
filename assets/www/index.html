@@ -48,10 +48,6 @@
                 <div class="form-group">
                     <label for="config">Конфиг</label>
                     <textarea class="form-control" id="config" rows="25" style="width: 100%;">
-                            -adcdev plughw:1,0 
-                            -dict $SNAP/model/4333.dic 
-                            -lm $SNAP/model/4333.lm
-                            -rawlogdir $SNAP_USER_COMMON/log/
                     </textarea>
                 </div>
                 <div class="form-group">
@@ -176,7 +172,6 @@
             }
 
             function convert(stressword) {
-                debugger;
                 var phones = "#" + stressword + "#";
 
                 // Assign stress marks
@@ -203,7 +198,7 @@
                 return phones.join(" ");
             }
             var stressword = keyphrase.trim();
-            return stressword.replace("+", "") + " " + convert(stressword) + "\n";
+            return stressword.replace("+", "") + " " + convert(stressword);
         }
 
         window.member_id = getParameterByName("member_id");
@@ -214,7 +209,7 @@
         $(function() {
             $.post("/load", {}, function(data) {
                 $("#config").text(data.split("\n-keyphrase ")[0]);
-                $("#keyphrase").val(data.split("\n-keyphrase ")[1]);
+                $("#keyphrase").val(data.split("\n-keyphrase ")[1].split("\n-dict ")[0]);
             });
             $.post("/auth", {}, function(data) {
                 $("#name").text(data);
@@ -241,10 +236,12 @@
             }
             $("#finish").click(function() {
                 $.post("/save", {
-                    config: $("#config").text() + "\n-keyphrase " + $("#keyphrase").val() + "\n-dict $SNAP_COMMON/dict.dic"
+                    config: $("#config").text() + "\n-keyphrase \"" + $("#keyphrase").val() + "\"\n-dict $SNAP_COMMON/dict.dic"
                 }, function() {
-                    $.post("/dic", {
-                        dic: prepareDic($("#keyphrase").val())
+                    $.post("/dict", {
+                        dict: $("#keyphrase").val().split(" ").map(function(word) {
+                            return prepareDic(word);
+                        }).join("\n") + "\n"
                     }, function() {
                         alert("saved");
                     });
