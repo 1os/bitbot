@@ -13,6 +13,8 @@ apps:
     daemon: simple
     environment:
       ALSA_CONFIG_PATH: $SNAP/usr/share/alsa/alsa.conf
+      LD_LIBRARY_PATH: $SNAP/lib
+      PKG_CONFIG_PATH: $SNAP/lib/pkgconfig
     restart-condition: always
     plugs:
       - network
@@ -28,9 +30,9 @@ apps:
 parts:
 
   acoustic-model:
-#    source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/US%20English/cmusphinx-en-us-5.2.tar.gz
+    # source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/US%20English/cmusphinx-en-us-5.2.tar.gz
     source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/Russian/cmusphinx-ru-5.2.tar.gz
-#    source: hmm/cmusphinx-ru-5.2.tar.gz
+    # source: hmm/cmusphinx-ru-5.2.tar.gz
     plugin: dump
     organize:
       '*': hmm/
@@ -53,26 +55,68 @@ parts:
     source: assets/
     plugin: dump
 
-  continuous-pip-packages:
-    plugin: python
-    source: continuous/
-    python-version: python2
-    stage-packages:
-      - libc6
-    python-packages:
-      - pygame
-
   continuous:
-    after: [continuous-pip-packages]
     source: continuous/
     plugin: dump
     stage-packages:
-      - python-pocketsphinx
-      - python-sphinxbase
+      # - python-pocketsphinx
+      # - python-sphinxbase
       - libc6
       - portaudio19-dev
       - python-pyaudio
+      # - libatlas-base-dev
 
   config-webserver:
     source: configserver/
     plugin: dump
+
+  
+  sphinxbase:
+    plugin: autotools
+    source: https://sourceforge.net/projects/cmusphinx/files/sphinxbase/5prealpha/sphinxbase-5prealpha.tar.gz
+    build-packages:
+      - bison
+      - libasound2-dev
+      - alsa-utils
+      - swig
+      - python-dev
+    stage-packages:
+      - bison
+      - libasound2-dev
+      - alsa-utils
+      - swig
+      - python-dev
+      - libc6
+    configflags:
+      - --enable-fixed
+      - --prefix=/
+    after:
+      - simple-webserver
+      
+  pocketsphinx:
+    plugin: autotools
+    source: https://sourceforge.net/projects/cmusphinx/files/pocketsphinx/5prealpha/pocketsphinx-5prealpha.tar.gz
+    override-build: |
+      export PKG_CONFIG=$SNAPCRAFT_STAGE
+      snapcraftctl build
+    configflags:
+      - --enable-fixed
+      - --prefix=/
+    after:
+      - sphinxbase
+    build-packages:
+      - bison
+      - libasound2-dev
+      - alsa-utils
+      - swig
+      - python-dev
+      - pkg-config
+    stage-packages:
+      - bison
+      - libasound2-dev
+      - alsa-utils
+      - swig
+      - python-dev
+      - libc6
+      - pkg-config
+  

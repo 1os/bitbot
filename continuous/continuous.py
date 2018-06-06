@@ -3,14 +3,11 @@
 import sys
 import os
 
-sys.path.append('/snap/bitbot/current/usr/lib/python2.7/dist-packages/')
-sys.path.append('/snap/bitbot/current/lib/python2.7/site-packages/')
+# sys.path.append('/snap/bitbot/current/usr/lib/python2.7/dist-packages/')
+# sys.path.append('/snap/bitbot/current/lib/python2.7/site-packages/')
 
 from pocketsphinx.pocketsphinx import *
 from sphinxbase.sphinxbase import *
-import pygame
-
-pygame.init()
 
 # Create a decoder with certain model
 config = Decoder.file_config(
@@ -20,6 +17,35 @@ print "i'm going to watch " + config.get_string("-keyphrase")
 
 import pyaudio
 import audioop
+import wave
+
+
+class AudioFile:
+    chunk = 1024
+
+    def __init__(self, file):
+        """ Init audio stream """
+        self.wf = wave.open(file, 'rb')
+        self.p = pyaudio.PyAudio()
+        self.stream = self.p.open(
+            format=self.p.get_format_from_width(self.wf.getsampwidth()),
+            channels=self.wf.getnchannels(),
+            rate=self.wf.getframerate(),
+            output=True
+        )
+
+    def play(self):
+        """ Play entire file """
+        data = self.wf.readframes(self.chunk)
+        while data != '':
+            self.stream.write(data)
+            data = self.wf.readframes(self.chunk)
+
+    def close(self):
+        """ Graceful shutdown """
+        self.stream.close()
+        self.p.terminate()
+
 
 samprate = int(config.get_float("-samprate")
                ) if config.exists("-samprate") else 16000
@@ -68,9 +94,9 @@ dataToSend = bytearray()
 count = 0
 print 'ready'
 
-pygame.mixer.music.load(os.path.join(
-    os.environ.get('SNAP'), 'sounds/Mallet.ogg'))
-pygame.mixer.music.play()
+a = AudioFile(os.path.join(os.environ.get('SNAP'), 'sounds/Mallet.wav'))
+a.play()
+a.close()
 
 while True:
     buf = resample(stream.read(buflen), lastInputDeviceRate)
@@ -87,17 +113,19 @@ while True:
                 filerecord.write(dataToSend)
                 dataToSend = bytearray()
                 print 'done'
-                pygame.mixer.music.load(os.path.join(
-                    os.environ.get('SNAP'), 'sounds/Slick.ogg'))
-                pygame.mixer.music.play()
+                a = AudioFile(os.path.join(
+                    os.environ.get('SNAP'), 'sounds/Slick.wav'))
+                a.play()
+                a.close()
         decoder.process_raw(buf, False, False)
     else:
         break
     if decoder.hyp() != None:
         record = True
         print 'Yes sir?'
-        pygame.mixer.music.load(os.path.join(
-            os.environ.get('SNAP'), 'sounds/Rhodes.ogg'))
-        pygame.mixer.music.play()
+        a = AudioFile(os.path.join(
+            os.environ.get('SNAP'), 'sounds/Rhodes.wav'))
+        a.play()
+        a.close()
         decoder.end_utt()
         decoder.start_utt()
