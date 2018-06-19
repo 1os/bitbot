@@ -31,8 +31,8 @@ parts:
 
   acoustic-model:
     # source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/US%20English/cmusphinx-en-us-5.2.tar.gz
-    source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/Russian/cmusphinx-ru-5.2.tar.gz
-    # source: hmm/cmusphinx-ru-5.2.tar.gz
+    # source: https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/Russian/cmusphinx-ru-5.2.tar.gz
+    source: hmm/cmusphinx-ru-5.2.tar.gz
     plugin: dump
     organize:
       '*': hmm/
@@ -64,7 +64,8 @@ parts:
       - libc6
       - portaudio19-dev
       - python-pyaudio
-      # - libatlas-base-dev
+      - python-alsaaudio
+      - libatlas-base-dev
 
   config-webserver:
     source: configserver/
@@ -74,6 +75,7 @@ parts:
   sphinxbase:
     plugin: autotools
     source: https://sourceforge.net/projects/cmusphinx/files/sphinxbase/5prealpha/sphinxbase-5prealpha.tar.gz
+    # source: sphinxbase-5prealpha.tar.gz
     build-packages:
       - bison
       - libasound2-dev
@@ -87,15 +89,17 @@ parts:
       - swig
       - python-dev
       - libc6
+      - libdb-dev
     configflags:
       - --enable-fixed
       - --prefix=/
     after:
-      - simple-webserver
+      - config-webserver
       
   pocketsphinx:
     plugin: autotools
     source: https://sourceforge.net/projects/cmusphinx/files/pocketsphinx/5prealpha/pocketsphinx-5prealpha.tar.gz
+    # source: pocketsphinx-5prealpha.tar.gz
     override-build: |
       export PKG_CONFIG=$SNAPCRAFT_STAGE
       snapcraftctl build

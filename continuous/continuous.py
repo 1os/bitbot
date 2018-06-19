@@ -5,6 +5,11 @@ import os
 
 # sys.path.append('/snap/bitbot/current/usr/lib/python2.7/dist-packages/')
 # sys.path.append('/snap/bitbot/current/lib/python2.7/site-packages/')
+sys.path.append(os.path.join(os.environ.get(
+    'SNAP'), 'lib/python2.7/site-packages/'))
+sys.path.append(os.path.join(os.environ.get('SNAP'),
+                             'usr/lib/python2.7/dist-packages/'))
+sys.path.append(os.path.join(os.environ.get('SNAP'), 'usr/lib/libblas/'))
 
 from pocketsphinx.pocketsphinx import *
 from sphinxbase.sphinxbase import *
@@ -33,6 +38,9 @@ class AudioFile:
             rate=self.wf.getframerate(),
             output=True
         )
+        print "getnchannels ", self.wf.getnchannels()
+        print "getframerate ", self.wf.getframerate()
+        print "getsampwidth ", self.wf.getsampwidth()
 
     def play(self):
         """ Play entire file """
@@ -49,7 +57,7 @@ class AudioFile:
 
 samprate = int(config.get_float("-samprate")
                ) if config.exists("-samprate") else 16000
-buflen = 1024 * 3
+buflen = 1024 * 300
 waitfor = 5
 
 p = pyaudio.PyAudio()
